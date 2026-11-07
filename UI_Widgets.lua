@@ -29,11 +29,45 @@ function W.Verre(f, fond, bord)
     f:SetBackdropBorderColor(bord[1], bord[2], bord[3], bord[4] or 1)
 end
 
+-- Bordure d'origine de WoW (infobulle) : pour les cartes et zones de saisie
+function W.VerreNatif(f, fond, bord)
+    f:SetBackdrop({
+        bgFile = BLANC,
+        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+        edgeSize = 14,
+        insets = { left = 3, right = 3, top = 3, bottom = 3 },
+    })
+    fond = fond or C.carte
+    bord = bord or { 0.8, 0.8, 0.8, 1 }
+    f:SetBackdropColor(fond[1], fond[2], fond[3], fond[4] or 1)
+    f:SetBackdropBorderColor(bord[1], bord[2], bord[3], bord[4] or 1)
+end
+
 function W.Cadre(parent, l, h, fond, bord)
     local f = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     if l then f:SetSize(l, h) end
-    W.Verre(f, fond or C.carte, bord)
+    -- fond sombre opaque par défaut (comme les panneaux de LD - Poker)
+    W.VerreNatif(f, fond or { 0.03, 0.04, 0.07, 0.9 }, bord)
     return f
+end
+
+-- Fenêtre : fond sombre et bordure des boîtes de dialogue de WoW, tracée à l'extérieur
+-- du cadre pour ne pas décaler le contenu (même principe que LD - Poker)
+function W.Fenetre(f)
+    local bg = f:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints()
+    bg:SetColorTexture(0.03, 0.04, 0.07, 0.95)
+    local ok, bf = pcall(CreateFrame, "Frame", nil, f, "BackdropTemplate")
+    if not ok or not bf or not bf.SetBackdrop then return end
+    bf:SetPoint("TOPLEFT", f, "TOPLEFT", -10, 10)
+    bf:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 10, -10)
+    bf:SetFrameLevel(f:GetFrameLevel() + 30)
+    bf:EnableMouse(false)
+    bf:SetBackdrop({
+        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+        edgeSize = 32,
+        insets = { left = 11, right = 11, top = 11, bottom = 11 },
+    })
 end
 
 function W.Texte(parent, taille, couleur, police, contour)
@@ -57,36 +91,35 @@ function W.Etiquette(parent, texte)
 end
 
 -- Bouton texte : style "primaire" (fond accent) ou "secondaire" (verre)
+-- Bouton rouge standard de WoW (UIPanelButtonTemplate).
+-- "primaire" = bouton mis en avant / onglet actif (surbrillance fixe, texte blanc)
 function W.Bouton(parent, texte, l, h, style)
-    local b = CreateFrame("Button", nil, parent, "BackdropTemplate")
+    local b = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
     b:SetSize(l or 100, h or 26)
-    local fs = W.Texte(b, 12)
-    fs:SetPoint("CENTER")
-    fs:SetJustifyH("CENTER")
-    fs:SetWordWrap(false)
-    b.label = fs
-    b:SetFontString(fs)
     b:SetText(texte)
+    local fs = b:GetFontString()
+    fs:SetFont(W.POLICE, 12, "")
+    fs:SetWordWrap(false)
+    fs:SetWidth((l or 100) - 12)
+    b.label = fs
 
     function b:SetStyle(s)
         self.style = s
         if s == "primaire" then
-            W.Verre(self, C.accent, C.accent)
-            self.label:SetTextColor(C.sombre[1], C.sombre[2], C.sombre[3])
+            self:LockHighlight()
+            fs:SetTextColor(1, 1, 1)
         else
-            W.Verre(self, { 1, 1, 1, 0.06 }, C.bord)
-            self.label:SetTextColor(C.texte[1], C.texte[2], C.texte[3])
+            self:UnlockHighlight()
+            fs:SetTextColor(1, 0.82, 0)
         end
     end
     b:SetStyle(style or "secondaire")
-
-    b:SetScript("OnEnter", function(self)
-        if self:IsEnabled() then self:SetBackdropBorderColor(1, 1, 1, 0.45) end
-    end)
-    b:SetScript("OnLeave", function(self) self:SetStyle(self.style) end)
-    b:SetScript("OnDisable", function(self) self:SetAlpha(0.45) end)
-    b:SetScript("OnEnable", function(self) self:SetAlpha(1) end)
     return b
+end
+
+-- Croix de fermeture standard de WoW
+function W.Fermer(parent)
+    return CreateFrame("Button", nil, parent, "UIPanelCloseButton")
 end
 
 -- Bouton image (cœur, croix)
@@ -156,47 +189,38 @@ function W.GroupeChoix(parent, options, colonnes, largeur, multiple, auChangemen
 end
 
 function W.Saisie(parent, l, h, multiligne)
-    local e = CreateFrame("EditBox", nil, parent, "BackdropTemplate")
-    e:SetSize(l, h or 26)
-    W.Verre(e, { 1, 1, 1, 0.05 }, C.bordFort)
+    local e
+    if multiligne then
+        e = CreateFrame("EditBox", nil, parent, "BackdropTemplate")
+        e:SetSize(l, h or 26)
+        W.VerreNatif(e, { 0.03, 0.04, 0.07, 0.9 })
+        e:SetTextInsets(8, 8, 6, 6)
+        e:SetMultiLine(true)
+    else
+        -- Champ de saisie standard de WoW
+        e = CreateFrame("EditBox", nil, parent, "InputBoxTemplate")
+        e:SetSize(l - 10, 22)
+        e:SetTextInsets(2, 2, 0, 0)
+        e:SetScript("OnEnterPressed", e.ClearFocus)
+    end
     e:SetFont(W.POLICE, 12, "")
     e:SetTextColor(1, 1, 1)
     e:SetAutoFocus(false)
-    e:SetTextInsets(8, 8, multiligne and 6 or 0, multiligne and 6 or 0)
-    if multiligne then
-        e:SetMultiLine(true)
-    else
-        e:SetScript("OnEnterPressed", e.ClearFocus)
-    end
     e:SetScript("OnEscapePressed", e.ClearFocus)
-    e:SetScript("OnEditFocusGained", function(self) self:SetBackdropBorderColor(C.accent[1], C.accent[2], C.accent[3], 0.8) end)
-    e:SetScript("OnEditFocusLost", function(self) self:SetBackdropBorderColor(C.bordFort[1], C.bordFort[2], C.bordFort[3], C.bordFort[4]) end)
     return e
 end
 
 -- Interrupteur on/off
 function W.Interrupteur(parent, auChangement)
-    local b = CreateFrame("Button", nil, parent, "BackdropTemplate")
-    b:SetSize(36, 20)
-    local pastille = b:CreateTexture(nil, "OVERLAY")
-    pastille:SetTexture(BLANC)
-    pastille:SetSize(14, 14)
-    b.pastille = pastille
+    -- Case à cocher standard de WoW
+    local b = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate")
+    b:SetSize(28, 28)
     function b:Set(v)
         self.valeur = v and true or false
-        pastille:ClearAllPoints()
-        if self.valeur then
-            W.Verre(self, C.accent, C.accent)
-            pastille:SetVertexColor(C.sombre[1], C.sombre[2], C.sombre[3])
-            pastille:SetPoint("RIGHT", -3, 0)
-        else
-            W.Verre(self, { 1, 1, 1, 0.08 }, C.bordFort)
-            pastille:SetVertexColor(0.7, 0.7, 0.7)
-            pastille:SetPoint("LEFT", 3, 0)
-        end
+        self:SetChecked(self.valeur)
     end
     b:SetScript("OnClick", function(self)
-        self:Set(not self.valeur)
+        self:Set(self:GetChecked())
         if auChangement then auChangement(self.valeur) end
     end)
     b:Set(false)

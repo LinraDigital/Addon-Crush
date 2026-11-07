@@ -9,7 +9,7 @@
 ## Notes-itIT: Incontra i giocatori che incroci nel gioco, in stile Happn. Solo 18+.
 ## Notes-ptBR: Conheça os jogadores que você cruza no jogo, no estilo Happn. Só +18.
 ## Author: Linra Digital
-## Version: 0.1.0
+## Version: 0.1.1
 ## X-Website: https://wow.linradigital.fr
 ## X-Localizations: frFR, enUS, enGB, deDE, esES, esMX, itIT, ptBR
 ## IconTexture: Interface\AddOns\LD_Crush\media\LDCrush_Minimap
