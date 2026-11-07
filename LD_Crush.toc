@@ -1,0 +1,28 @@
+## Interface: 120105, 50504, 40402, 30405, 20506, 16001, 11509
+## Title: |cffe8b44aLD - Crush|r
+## Notes: Rencontre les joueurs que tu croises en jeu, façon Happn. Réservé aux 18 ans et plus.
+## Notes-enUS: Meet the players you cross paths with in game, Happn-style. 18+ only.
+## Notes-enGB: Meet the players you cross paths with in game, Happn-style. 18+ only.
+## Notes-deDE: Triff die Spieler, denen du im Spiel begegnest, im Stil von Happn. Nur ab 18.
+## Notes-esES: Conoce a los jugadores con los que te cruzas en el juego, al estilo Happn. Solo +18.
+## Notes-esMX: Conoce a los jugadores con los que te cruzas en el juego, al estilo Happn. Solo +18.
+## Notes-itIT: Incontra i giocatori che incroci nel gioco, in stile Happn. Solo 18+.
+## Notes-ptBR: Conheça os jogadores que você cruza no jogo, no estilo Happn. Só +18.
+## Author: Linra Digital
+## Version: 0.1.0
+## X-Website: https://wow.linradigital.fr
+## X-Localizations: frFR, enUS, enGB, deDE, esES, esMX, itIT, ptBR
+## IconTexture: Interface\AddOns\LD_Crush\media\LDCrush_Minimap
+## SavedVariables: LDCrushAccount
+## SavedVariablesPerCharacter: LDCrushDB
+
+Locales.lua
+Core.lua
+Comm.lua
+Detect.lua
+Logic.lua
+UI_Widgets.lua
+UI_Main.lua
+UI_Pages.lua
+UI_Popup.lua
+Minimap.lua
